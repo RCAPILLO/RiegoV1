@@ -1,5 +1,7 @@
 from tkinter import *
 import mysql.connector
+from Principal import pantallaPrincipal
+from tkinter import messagebox
 
 # Conexión a la base de datos MySQL
 def conectar_bd():
@@ -27,7 +29,9 @@ def validar_usuario():
 
         if resultado:
             # Si las credenciales son correctas, abrir nueva ventana
-            print("Bien venido al sistema de riego v1")
+            messagebox.showinfo("Inicio de Sesión", "Bienvenido al sistema de riego v1")
+            root.destroy()  # Cerrar la ventana actual
+            pantallaPrincipal()  # Llamar a la pantalla principal
         else:
             mensaje_error["text"] = "Usuario o contraseña incorrectos"
     except mysql.connector.Error as err:
