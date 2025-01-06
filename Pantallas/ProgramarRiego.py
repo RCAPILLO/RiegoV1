@@ -1,31 +1,44 @@
 from tkinter import *
 from tkinter import ttk
-from MonitorRiego import MonitorRiego
-def ProgramarRiego():
-    VentanaProgramarRiego=Tk()
-    VentanaProgramarRiego.geometry("500x400")
-    miframe=Frame()
-    miframe.config(width=500,height=400)
-    miframe.pack()
-    EstadoDelSistema=StringVar()
-    EstadoDelSistema.set("Estado del Sistema")
+from MonitorRiego import mostrar_pantalla_monitor_riego  
 
-    # Etiquetas de título 
-    Label(miframe, text="Sistema de Riego", font=("Comic Sans MS", 24), justify="center").place(x=120, y=20)
-    # Línea horizontal decorativa
-    Frame(miframe, bg="black", height=2, width=460).place(x=20, y=80)
+class VentanaProgramarRiego:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Sistema de Riego v.1")
+        self.master.geometry("500x400")
 
-    Label(miframe,text="Panel de configuracion del riego",font=("comic san MS",18)).place(x=80,y=100)
-    Label(miframe,text="Seleccione cultivo:",font=("comic san MS",18)).place(x=20,y=180)
-    ElegirCultivo=ttk.Combobox(miframe,state="readonly",values=["Pimiento","Tomate","Maiz"],font=("Comic san MS",18),width=12).place(x=240,y=180)
+        self.miframe = Frame(self.master, width=500, height=400)
+        self.miframe.pack()
 
-    Guardar=Button(miframe,text="Guardar", font=("Comic san MS",18),width=10,
-                   command=lambda:[VentanaProgramarRiego.destroy(),MonitorRiego()]
-                   )
-    Guardar.place(x=80,y=320)
-    Salir=Button(miframe,text="Salir", font=("Comic san MS",18), width=10,
-                 command=lambda:[VentanaProgramarRiego.destroy(),]
-                 )
-    Salir.place(x=280,y=320)
+        # Etiquetas de título
+        Label(self.miframe, text="Sistema de Riego", font=("Comic Sans MS", 24)).place(x=120, y=20)
+        Label(self.miframe, text="Panel de configuración del riego", font=("Comic Sans MS", 18)).place(x=80, y=100)
 
-    VentanaProgramarRiego.mainloop()
+        # Combobox para seleccionar cultivo
+        Label(self.miframe, text="Seleccione cultivo:", font=("Comic Sans MS", 18)).place(x=20, y=180)
+        self.cultivo = ttk.Combobox(self.miframe, state="readonly", 
+                                    values=["Pimiento", "Tomate", "Maíz"], 
+                                    font=("Comic Sans MS", 16), width=12)
+        self.cultivo.place(x=240, y=180)
+
+        # Botones
+        Button(self.miframe, text="Guardar", width=12,height=1,font=("Comic Sans MS", 16), bg="lightblue",
+               command=self.guardar).place(x=70, y=300)
+        Button(self.miframe, text="Salir",width=12,height=1, font=("Comic Sans MS", 16), bg="lightblue",
+               command=self.master.quit).place(x=250, y=300)
+
+    def guardar(self):
+        from tkinter import messagebox
+        cultivo = self.cultivo.get()
+        if cultivo:
+            messagebox.showinfo("Guardado", f"Se configuró el riego para: {cultivo}")
+            self.master.destroy()  # Cierra la ventana actual
+            mostrar_pantalla_monitor_riego()
+            
+        else:
+            messagebox.showwarning("Advertencia", "Debe seleccionar un cultivo.")
+def mostrar_pantalla_programar_riego():
+    root = Tk()
+    app = VentanaProgramarRiego(root)
+    root.mainloop()
