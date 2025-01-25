@@ -34,8 +34,7 @@ class VentanaProgramarRiego:
         if cultivo:
             messagebox.showinfo("Guardado", f"Se configuró el riego para: {cultivo}")
             self.master.destroy()  # Cierra la ventana actual
-            mostrar_pantalla_monitor_riego()
-            
+            mostrar_pantalla_monitor_riego() 
         else:
             messagebox.showwarning("Advertencia", "Debe seleccionar un cultivo.")
 def mostrar_pantalla_programar_riego():
