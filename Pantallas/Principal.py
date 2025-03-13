@@ -47,6 +47,7 @@ class VentanaPrincipal:
         mostrar_pantalla_programar_riego()  # Llamar a la función para programar el riego
     def salir(self):
         self.master.destroy()
+        
 # Ejemplo de cómo crear y ejecutar esta ventana principal
 def mostrar_pantalla_principal():
     root = Tk()

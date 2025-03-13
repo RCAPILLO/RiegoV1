@@ -1,3 +1,4 @@
+import sys
 from tkinter import *
 from Informes import mostrar_pantalla_informes  # Importa la función para mostrar los informes
 
@@ -41,6 +42,8 @@ class VentanaMonitorRiego:
                command=self.alarmas).place(x=300, y=340)
         Button(self.miframe, text="Informes", font=("Comic Sans MS", 16), width=10, bg="green",
                command=self.abrir_informes).place(x=440, y=340)
+        
+
 
     # Métodos para manejar eventos
     def modo_manual(self):
@@ -61,6 +64,7 @@ class VentanaMonitorRiego:
         messagebox.showinfo("Informes", "Abriendo informes...")
         self.master.destroy()  # Cierra la ventana actual
         mostrar_pantalla_informes()  # Llama a la función para mostrar los informes
+
     
 
 def mostrar_pantalla_monitor_riego():
