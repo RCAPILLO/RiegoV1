@@ -16,9 +16,12 @@ class Comunicacion:
 
     def puertos_disponibles(self):
         self.puertos=[port.device for port in serial.tools.list_ports.comports()]
+        return self.puertos  # ← ¡Devuelve la lista!
     
     def conexion_serial(self):
         try:
+            self.arduino.dtr = False  # Deshabilita DTR
+            self.arduino.rts = False  # Deshabilita RTS
             self.arduino.open()
         except:
             pass

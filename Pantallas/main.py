@@ -1,6 +1,7 @@
 from tkinter import Tk
-from Inicio import VentanaInicio
+from .Inicio import VentanaInicio
 
+from Clases.Riego import Riego  # Ahora debería funcionar correctamente
 
 # Configuración de la ventana principal
 def main():

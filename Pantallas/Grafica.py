@@ -3,9 +3,8 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import matplotlib.animation as animacion
-from Comunicacion import Comunicacion
+from .Comunicacion import Comunicacion
 import collections
-from tkinter import StringVar
 
 class Grafica(Frame):
     def __init__(self,master,*args):
@@ -19,12 +18,14 @@ class Grafica(Frame):
 
         plt.title("Grafica de prueba ",color="green",size=12,family="Arial")
         ax.tick_params(direction='out',length=6,width=2,color="white",grid_color="r",grid_alpha=0.5)
-        self.line,=ax.plot([],[],color='red',marker='o',linewidth=2,markersize=2,markeredgecolor='m')
-        self.line2,=ax.plot([],[],color='m',marker='o',linewidth=2,markersize=2,markeredgecolor='g')
+        self.line,=ax.plot([],[],color='red',marker='o',linewidth=2,markersize=2,markeredgecolor='r')
+        self.line2,=ax.plot([],[],color='blue',marker='o',linewidth=2,markersize=2,markeredgecolor='b')
         self.line3,=ax.plot([],[],color='green',marker='o',linewidth=2,markersize=2,markeredgecolor='g')
 
         ax.set_xlim([0, self.muestra])
         ax.set_ylim([0, 100])  # Ajusta este límite según los valores esperados
+        ax.set_yticks(range(0, 101, 10)) 
+        ax.tick_params(axis='y', colors='white') 
 
         ax.set_facecolor('#6E6D7000')
         ax.spines['bottom'].set_color('blue')
@@ -111,13 +112,16 @@ class Grafica(Frame):
         
         self.logo = PhotoImage(file=".\Imagenes\Agro1.png").subsample(3, 3) 
 
-        Label(frame_dos,text="Control analogico de prueba",font=("Comic san MS",12,'bold'),bg='black',fg='white').pack(padx=5,pady=5,expand=1)
-        style=ttk.Style() 
-        style.configure("Horizontal.TScale",background='black')
-        self.slider_uno=ttk.Scale(frame_dos,command=self.datos_slider_uno,state='disabled',to=255,from_=0,orient='horizontal',length=280,style='TScale')
-        self.slider_uno.pack(pady=5,expand=1)
-        self.slider_dos=ttk.Scale(frame_dos,command=self.datos_slider_dos,state='disabled',to=255,from_=0,orient='horizontal',length=280,style='TScale')
-        self.slider_dos.pack(pady=5,expand=1)
+        Label(frame_dos,text="Lectura de sensores en linea",font=("Comic san MS",12,'bold'),bg='black',fg='white').pack(padx=5,pady=5,expand=1)
+        Label(frame_dos,text="Temperatura ambiente:  Rojo",font=("Comic san MS",10,'bold'),bg='black',fg='white',anchor="w", justify="left").pack(padx=5,pady=5,expand=1)
+        Label(frame_dos,text="Humedad relativa del ambiente: Azul",font=("Comic san MS",10,'bold'),bg='black',fg='white',anchor="w", justify="left").pack(padx=5,pady=5,expand=1)
+        Label(frame_dos,text="Humedad del suelo: Verde",font=("Comic san MS",10,'bold'),bg='black',fg='white',anchor="w", justify="left").pack(padx=5,pady=5,expand=1)
+        #style=ttk.Style() 
+        #style.configure("Horizontal.TScale",background='black')
+        #self.slider_uno=ttk.Scale(frame_dos,command=self.datos_slider_uno,state='disabled',to=255,from_=0,orient='horizontal',length=280,style='TScale')
+        #self.slider_uno.pack(pady=5,expand=1)
+        #self.slider_dos=ttk.Scale(frame_dos,command=self.datos_slider_dos,state='disabled',to=255,from_=0,orient='horizontal',length=280,style='TScale')
+        #self.slider_dos.pack(pady=5,expand=1)
 
         port=self.datos_arduino.puertos
         baud=self.datos_arduino.braudates
@@ -151,9 +155,10 @@ class Grafica(Frame):
     def conectar_serial(self):
         self.bt_conectar.config(state='disabled')
         self.bt_desconectar_puertos.config(state='normal')
-        self.slider_uno.config(state='normal')
-        self.slider_dos.config(state='normal')
+        #self.slider_uno.config(state='normal')
+        #self.slider_dos.config(state='normal')
         self.bt_reanudar.config(state='disabled')
+        self.bt_cerrar_ventana.config(state='disabled')
 
         self.datos_arduino.arduino.port=self.combobox_port.get()
         self.datos_arduino.arduino.baudrate=self.combobox_baud.get()
@@ -161,27 +166,28 @@ class Grafica(Frame):
     def desconectar_serial(self):
         self.bt_conectar.config(state='normal')
         self.bt_desconectar_puertos.config(state='disabled')
-        self.slider_uno.config(state='disabled')
-        self.slider_dos.config(state='disabled')
+        #self.slider_uno.config(state='disabled')
+        #self.slider_dos.config(state='disabled')
         self.bt_reanudar.config(state='disabled')
+        self.bt_cerrar_ventana.config(state='normal')
         try:
             self.ani.event_source.stop()
         except AttributeError:
             pass
         self.datos_arduino.desconectar()
-    def datos_slider_uno(self,*args):
-        dato='1,'+str(int(self.slider_uno.get()))
-        self.datos_arduino.enviar_datos(dato)
-    def datos_slider_dos(self,*args):
-        dato='2,'+str(int(self.slider_dos.get()))
-        self.datos_arduino.enviar_datos(dato)
+    #def datos_slider_uno(self,*args):
+    #    dato='1,'+str(int(self.slider_uno.get()))
+    #    self.datos_arduino.enviar_datos(dato)
+    #def datos_slider_dos(self,*args):
+    #    dato='2,'+str(int(self.slider_dos.get()))
+    #    self.datos_arduino.enviar_datos(dato)
     
     def cerrar_ventana(self):
         try:
             self.datos_arduino.desconectar()  # Desconecta la comunicación serial si es necesario
             if hasattr(self, 'ani'):
                 self.ani.event_source.stop()  # Detener la animación si está corriendo
-                from Informes import mostrar_pantalla_informes
+                from .Informes import mostrar_pantalla_informes
                 self.master.destroy()  # Cierra la ventana actual
                 mostrar_pantalla_informes()
         except Exception as e:

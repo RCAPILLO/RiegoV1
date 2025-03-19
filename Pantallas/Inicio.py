@@ -1,6 +1,6 @@
 from tkinter import *
 import mysql.connector
-from Principal import mostrar_pantalla_principal
+from .Principal import mostrar_pantalla_principal
 from tkinter import messagebox
 
 class VentanaInicio:

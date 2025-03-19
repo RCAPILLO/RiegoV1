@@ -1,6 +1,6 @@
 from tkinter import *
-from MostrarGrafico import mostrarGrafico  # Importa la función para mostrar gráficos
-from Grafica import mostrar_ventana_informes_linea
+from .MostrarGrafico import mostrarGrafico  # Importa la función para mostrar gráficos
+from .Grafica import mostrar_ventana_informes_linea
 
 class VentanaInformes:
     def __init__(self, master):
