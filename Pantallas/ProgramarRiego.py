@@ -5,6 +5,7 @@ from .MonitorRiego import mostrar_pantalla_monitor_riego
 from Clases.Riego import Riego
 import sys
 import os
+from datetime import datetime,date
 
 # Obtener la ruta del directorio raíz del proyecto
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -44,10 +45,28 @@ class VentanaProgramarRiego:
         self.fecha_siembra.place(x=300, y=260)
 
         # Botones
-        Button(self.miframe, text="Guardar", width=12,height=1,font=("Comic Sans MS", 16), bg="lightblue",
-               command=self.guardar).place(x=70, y=320)
-        Button(self.miframe, text="Salir",width=12,height=1, font=("Comic Sans MS", 16), bg="lightblue",
-               command=self.cerrar_pantalla).place(x=250, y=320)
+        self.boton_guardar=Button(self.miframe, text="Guardar", width=12,height=1,font=("Comic Sans MS", 12), bg="lightblue",
+               command=self.guardar)
+        self.boton_guardar.place(x=30, y=320)
+        self.boton_nuevo=Button(self.miframe, text="Nuevo", width=12,height=1,font=("Comic Sans MS", 12), bg="lightblue",
+               command=self.nuevo_riego)
+        self.boton_nuevo.place(x=130, y=320)
+
+        self.boton_ir_monitor=Button(self.miframe, text="Monitor", width=12,height=1,font=("Comic Sans MS", 12), bg="lightblue",
+               command=self.ir_monitor)
+        self.boton_ir_monitor.place(x=250, y=320)
+
+        self.boton_salir=Button(self.miframe, text="Atras",width=12,height=1, font=("Comic Sans MS", 12), bg="lightblue",
+               command=self.cerrar_pantalla_atras)
+        self.boton_salir.place(x=350, y=320)
+        
+        # Cargar último riego programado
+        self.cargar_ultimo_riego()
+        self.validar_campos()
+        # Asociar evento de validación
+        self.cultivo.bind("<<ComboboxSelected>>", self.validar_campos)
+        self.zona.bind("<<ComboboxSelected>>", self.validar_campos)
+        #self.fecha_siembra.bind("<KeyRelease>",self.validar_campos)
 
     def guardar(self):
         from tkinter import messagebox
@@ -62,7 +81,7 @@ class VentanaProgramarRiego:
                 self.base_datos.guardar_cultivo(cultivo, zona, fecha_siembra_mysql)
                 messagebox.showinfo("Guardado", f"Se guardó el riego para: {cultivo} en {zona} ({fecha_siembra})")
 
-                self.master.destroy()  
+                self.cerrar_pantalla()
                 mostrar_pantalla_monitor_riego()
             except ValueError:
                 messagebox.showerror("Error", "Formato de fecha incorrecto. Use DD/MM/AAAA.")
@@ -73,12 +92,53 @@ class VentanaProgramarRiego:
         dia, mes, año = fecha.split("/")
         return f"{año}-{mes}-{dia}"
     
+    def cerrar_pantalla_atras(self):
+        """ Cierra la ventana y libera memoria """
+        self.master.destroy()  # Cierra la ventana
+        gc.collect()  # Libera memoria en caso lo este usando
+        from .Principal import mostrar_pantalla_principal
+        mostrar_pantalla_principal()
+    
+    def cargar_ultimo_riego(self):
+        datos = self.base_datos.ultimo_riego_programado()
+        if datos:
+            tipo_cultivo, zona, fecha_riego = datos
+             # Si `fecha_riego` es `datetime.date`, conviértelo a string
+            if isinstance(fecha_riego, date):
+                fecha_riego_str = fecha_riego.strftime("%d/%m/%Y")
+            else:
+                fecha_riego_str = datetime.strptime(fecha_riego, "%Y-%m-%d").strftime("%d/%m/%Y")
+
+            self.cultivo.set(tipo_cultivo)
+            self.zona.set(zona)
+            self.fecha_siembra.delete(0,END)  
+            self.fecha_siembra.insert(0, fecha_riego_str)  
+        else:
+            print("No se encontraron registros previos.")
+    def nuevo_riego(self):
+            self.cultivo.set("")
+            self.zona.set("")
+            self.fecha_siembra.delete(0,END)  
+            self.fecha_siembra.insert(0, "")  
+    def validar_campos(self, event=None):
+        """Habilita o deshabilita los botones según el estado de los campos."""
+        campos_llenos = all([self.cultivo.get(), self.zona.get(), self.fecha_siembra.get()])
+
+        if campos_llenos:
+            self.boton_guardar.config(state=DISABLED)  # Deshabilitar "Guardar"
+            self.boton_nuevo.config(state=NORMAL)  # Activar "Nuevo"
+        else:
+            self.boton_guardar.config(state=NORMAL)  # Activar "Guardar"
+            self.boton_nuevo.config(state=DISABLED)  # Deshabilitar "Nuevo"
     def cerrar_pantalla(self):
         """ Cierra la ventana y libera memoria """
         self.master.destroy()  # Cierra la ventana
         gc.collect()  # Libera memoria en caso lo este usando
-
         
+    def ir_monitor(self):
+        self.cerrar_pantalla()
+        mostrar_pantalla_monitor_riego()  
+
 def mostrar_pantalla_programar_riego():
     root = Tk()
     app = VentanaProgramarRiego(root)

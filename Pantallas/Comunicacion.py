@@ -2,10 +2,12 @@
 import serial, serial.tools.list_ports
 from threading import Thread,Event
 from tkinter import StringVar
+import queue
 
 class Comunicacion:
-    def __init__(self,*args):
+    def __init__(self,datos_cola,*args):
         super().__init__(*args)
+        self.datos_cola = datos_cola  # la cola de datos
         self.datos_recibidos=StringVar()
         self.arduino=serial.Serial()
         self.arduino.timeout=2
@@ -18,16 +20,36 @@ class Comunicacion:
         self.puertos=[port.device for port in serial.tools.list_ports.comports()]
         return self.puertos  # ← ¡Devuelve la lista!
     
-    def conexion_serial(self):
+    
+    def conexion_serial(self, puerto=None, baudrate=9600):
+       # Si self.arduino es None, crearlo de nuevo
+        if self.arduino is None:
+            self.arduino = serial.Serial()
+       
+        """Establece conexión con Arduino en un puerto y baudrate especificado"""
+        if not puerto:
+            puertos_disponibles = self.puertos_disponibles()
+            if puertos_disponibles:
+                puerto = puertos_disponibles[0]  # Tomamos el primer puerto disponible
+            else:
+                print("No hay puertos disponibles")
+                return
+
         try:
+            self.arduino.port = puerto
+            self.arduino.baudrate = baudrate
+            self.arduino.timeout=2
             self.arduino.dtr = False  # Deshabilita DTR
             self.arduino.rts = False  # Deshabilita RTS
             self.arduino.open()
-        except:
-            pass
-        if (self.arduino.is_open):
-            self.iniciar_hilo()
-            print('Conectado arduino')
+
+            if self.arduino.is_open:
+                self.iniciar_hilo()
+                print(f'Conectado a {puerto} con baudrate {baudrate}')
+        except serial.SerialException as e:
+            print(f"Error al conectar con {puerto}: {e}")
+            self.arduino = None
+
         
     def enviar_datos(self, data):
         if (self.arduino.is_open):
@@ -43,7 +65,9 @@ class Comunicacion:
                 if not data:  # Evita procesar líneas vacías
                     continue  
                 print("Datos recibidos:", data)  # Verifica qué llega exactamente
-                self.datos_recibidos.set(data)  # Guarda los datos
+                self.datos_recibidos.set(data)  # Guarda los datos en String Var
+                self.datos_cola.put(data)  #¡Ahora también los enviamos a la cola!
+                print("Datos enviados a la cola:", data)  # Depuración
                 print(f'Datos guardados',self.datos_recibidos)
         except (UnicodeDecodeError, TypeError) as e:
             print(f"Error al leer datos: {e}")  
@@ -65,8 +89,15 @@ class Comunicacion:
             self.hilo=None
 
     def desconectar(self):
-        self.arduino.close()
-        self.detener_hilo()
+        if self.arduino and self.arduino.is_open:
+            self.arduino.close()
+            self.detener_hilo()
+            print("Conexión cerrada con Arduino")
+        else:
+            print("No hay conexión activa con Arduino")
+        self.arduino = None  # Asegurar que la variable se restablece correctamente
+        
+        
     
 
 

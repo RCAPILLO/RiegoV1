@@ -31,7 +31,7 @@ class VentanaInformes:
     def mostrar_grafico(self):
         mostrarGrafico()  # Llama a la función `mostrarGrafico`
     def volver_a_monitor(self):
-        from MonitorRiego import mostrar_pantalla_monitor_riego
+        from .MonitorRiego import mostrar_pantalla_monitor_riego
         self.master.destroy()  # Cierra la ventana actual
         mostrar_pantalla_monitor_riego()
     def mostrar_enlinea(self):

@@ -1,3 +1,4 @@
+import queue
 from tkinter import *
 from .Informes import mostrar_pantalla_informes  # Importa la función para mostrar los informes
 from .Comunicacion import Comunicacion
@@ -6,9 +7,11 @@ import collections
 class VentanaMonitorRiego():
     def __init__(self,master,*args):
         self.master = master
+        self.after_id = None  # Asegura que la variable exista desde el inicio
         self.master.title("Monitor de Riego")
         self.master.geometry("600x450")
-        self.datos_arduino =Comunicacion()
+        self.datos_cola = queue.Queue()
+        self.datos_arduino =Comunicacion(self.datos_cola)
         self.datos_recibidos = self.datos_arduino.datos_recibidos  # Usar la misma variable
         self.miframe = Frame(self.master, width=600, height=450)
         self.miframe.pack()
@@ -60,7 +63,7 @@ class VentanaMonitorRiego():
             self.datos_arduino.arduino.port = self.puertos[0]
             self.datos_arduino.arduino.baudrate = 9600
             self.datos_arduino.conexion_serial()
-            if self.datos_arduino.arduino.is_open:
+            if  self.datos_arduino.arduino and self.datos_arduino.arduino.is_open:
                 self.conexion_label.config(text="Conectado a Arduino", fg="green")
             else:
                 self.conexion_label.config(text="Error al conectar", fg="red")
@@ -73,20 +76,38 @@ class VentanaMonitorRiego():
     # Métodos para manejar eventos
     def modo_manual(self):
         print("Cambiando a modo manual")
-        # Aquí puedes implementar la lógica correspondiente
-
-    def detener(self):
-        print("Deteniendo el sistema de riego")
-        self.datos_arduino.desconectar()
-        self.master.destroy()
+        """ Método para detener completamente el riego desde Monitor de Riego """
+        print("Deteniendo todo el sistema de riego...")
+    
+        # Asegurarse de que la red neuronal se detenga
+        if hasattr(self, 'red_neuronal'):
+            self.red_neuronal.detener_riego()
+        
+        # También detenemos la comunicación con Arduino
         self.datos_arduino.desconectar()
         self.datos_arduino.detener_hilo()
+        
+        print("Riego detenido con éxito.")
+        
+    def detener(self):
+        print("Deteniendo el sistema de riego")
+
+        # Cancela la actualización automática antes de cerrar
+        if hasattr(self, "after_id"):
+            self.master.after_cancel(self.after_id)
+
+        self.datos_arduino.desconectar()
+        self.datos_arduino.detener_hilo()
+    
+        self.master.destroy()
+        
         from .ProgramarRiego import mostrar_pantalla_programar_riego
         mostrar_pantalla_programar_riego()
 
     def alarmas(self):
         print("Mostrando alarmas")
         # Aquí puedes implementar la lógica correspondiente
+        
 
     def abrir_informes(self):
         from tkinter import messagebox
